@@ -19,14 +19,21 @@ type Config struct {
 	RedOverlap  int
 }
 
-type Controller struct{}
+type Controller struct {
+	config Config
+}
 
 func NewController(cfg Config) *Controller {
-	return nil
+	return &Controller{
+		config: cfg,
+	}
 }
 
 func (c *Controller) Tick() {}
 
 func (c *Controller) State() IntersectionState {
-	return IntersectionState{}
+	return IntersectionState{
+		NS: Green,
+		EW: Red,
+	}
 }
