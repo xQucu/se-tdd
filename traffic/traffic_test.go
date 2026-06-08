@@ -45,3 +45,32 @@ func TestNSGreenToNSYellow(t *testing.T) {
 	}
 }
 
+func TestNSYellowToAllRed(t *testing.T) {
+	cfg := Config{
+		GreenTicks:  5,
+		YellowTicks: 2,
+		RedOverlap:  1,
+	}
+	c := NewController(cfg)
+
+	// Tick through Green phase (5 ticks)
+	for i := 0; i < 5; i++ {
+		c.Tick()
+	}
+	// Tick through Yellow phase (2 ticks)
+	for i := 0; i < 2; i++ {
+		state := c.State()
+		if state.NS != Yellow || state.EW != Red {
+			t.Fatalf("Tick %d: expected NS Yellow / EW Red, got NS %s / EW %s", 5+i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// At tick 7, NS should turn Red (both Red)
+	state := c.State()
+	if state.NS != Red || state.EW != Red {
+		t.Errorf("expected both Red, got NS %s / EW %s", state.NS, state.EW)
+	}
+}
+
+
