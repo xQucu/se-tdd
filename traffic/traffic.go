@@ -21,19 +21,30 @@ type Config struct {
 
 type Controller struct {
 	config Config
+	ticks  int
 }
 
 func NewController(cfg Config) *Controller {
 	return &Controller{
 		config: cfg,
+		ticks:  0,
 	}
 }
 
-func (c *Controller) Tick() {}
+func (c *Controller) Tick() {
+	c.ticks++
+}
 
 func (c *Controller) State() IntersectionState {
+	if c.ticks >= c.config.GreenTicks {
+		return IntersectionState{
+			NS: Yellow,
+			EW: Red,
+		}
+	}
 	return IntersectionState{
 		NS: Green,
 		EW: Red,
 	}
 }
+
