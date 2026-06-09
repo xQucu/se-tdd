@@ -36,6 +36,12 @@ func (c *Controller) Tick() {
 }
 
 func (c *Controller) State() IntersectionState {
+	if c.ticks >= c.config.GreenTicks+c.config.YellowTicks+c.config.RedOverlap {
+		return IntersectionState{
+			NS: Red,
+			EW: Green,
+		}
+	}
 	if c.ticks >= c.config.GreenTicks+c.config.YellowTicks {
 		return IntersectionState{
 			NS: Red,
@@ -53,5 +59,6 @@ func (c *Controller) State() IntersectionState {
 		EW: Red,
 	}
 }
+
 
 
