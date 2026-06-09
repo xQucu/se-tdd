@@ -8,6 +8,17 @@ const (
 	Green  Light = "GREEN"
 )
 
+type phase int
+
+const (
+	nsGreen phase = iota
+	nsYellow
+	nsAllRed
+	ewGreen
+	ewYellow
+	ewAllRed
+)
+
 type IntersectionState struct {
 	NS Light
 	EW Light
@@ -20,45 +31,51 @@ type Config struct {
 }
 
 type Controller struct {
-	config Config
-	ticks  int
+	config              Config
+	currentPhase        phase
+	ticksInCurrentPhase int
 }
 
 func NewController(cfg Config) *Controller {
 	return &Controller{
-		config: cfg,
-		ticks:  0,
+		config:              cfg,
+		currentPhase:        nsGreen,
+		ticksInCurrentPhase: 0,
 	}
 }
 
 func (c *Controller) Tick() {
-	c.ticks++
+	c.ticksInCurrentPhase++
+
+	var limit int
+	switch c.currentPhase {
+	case nsGreen, ewGreen:
+		limit = c.config.GreenTicks
+	case nsYellow, ewYellow:
+		limit = c.config.YellowTicks
+	case nsAllRed, ewAllRed:
+		limit = c.config.RedOverlap
+	}
+
+	if c.ticksInCurrentPhase >= limit {
+		c.ticksInCurrentPhase = 0
+		c.currentPhase = (c.currentPhase + 1) % 6
+	}
 }
 
 func (c *Controller) State() IntersectionState {
-	if c.ticks >= c.config.GreenTicks+c.config.YellowTicks+c.config.RedOverlap {
-		return IntersectionState{
-			NS: Red,
-			EW: Green,
-		}
-	}
-	if c.ticks >= c.config.GreenTicks+c.config.YellowTicks {
-		return IntersectionState{
-			NS: Red,
-			EW: Red,
-		}
-	}
-	if c.ticks >= c.config.GreenTicks {
-		return IntersectionState{
-			NS: Yellow,
-			EW: Red,
-		}
-	}
-	return IntersectionState{
-		NS: Green,
-		EW: Red,
+	switch c.currentPhase {
+	case nsGreen:
+		return IntersectionState{NS: Green, EW: Red}
+	case nsYellow:
+		return IntersectionState{NS: Yellow, EW: Red}
+	case nsAllRed, ewAllRed:
+		return IntersectionState{NS: Red, EW: Red}
+	case ewGreen:
+		return IntersectionState{NS: Red, EW: Green}
+	case ewYellow:
+		return IntersectionState{NS: Red, EW: Yellow}
+	default:
+		return IntersectionState{NS: Red, EW: Red}
 	}
 }
-
-
-
