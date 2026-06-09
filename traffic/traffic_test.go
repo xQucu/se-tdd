@@ -93,5 +93,75 @@ func TestAllRedToEWGreen(t *testing.T) {
 	}
 }
 
+func TestFullTransitions(t *testing.T) {
+	cfg := Config{
+		GreenTicks:  5,
+		YellowTicks: 2,
+		RedOverlap:  1,
+	}
+	c := NewController(cfg)
+
+	// Step 1: NS Green / EW Red (ticks 0 to 4)
+	for i := 0; i < cfg.GreenTicks; i++ {
+		state := c.State()
+		if state.NS != Green || state.EW != Red {
+			t.Fatalf("Tick %d: expected NS Green / EW Red, got NS %s / EW %s", i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// Step 2: NS Yellow / EW Red (ticks 5 to 6)
+	for i := 0; i < cfg.YellowTicks; i++ {
+		state := c.State()
+		if state.NS != Yellow || state.EW != Red {
+			t.Fatalf("Tick %d: expected NS Yellow / EW Red, got NS %s / EW %s", cfg.GreenTicks+i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// Step 3: NS Red / EW Red (overlap) (tick 7)
+	for i := 0; i < cfg.RedOverlap; i++ {
+		state := c.State()
+		if state.NS != Red || state.EW != Red {
+			t.Fatalf("Tick %d: expected NS Red / EW Red, got NS %s / EW %s", cfg.GreenTicks+cfg.YellowTicks+i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// Step 4: NS Red / EW Green (ticks 8 to 12)
+	for i := 0; i < cfg.GreenTicks; i++ {
+		state := c.State()
+		if state.NS != Red || state.EW != Green {
+			t.Fatalf("Tick %d: expected NS Red / EW Green, got NS %s / EW %s", cfg.GreenTicks+cfg.YellowTicks+cfg.RedOverlap+i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// Step 5: NS Red / EW Yellow (ticks 13 to 14)
+	for i := 0; i < cfg.YellowTicks; i++ {
+		state := c.State()
+		if state.NS != Red || state.EW != Yellow {
+			t.Fatalf("Tick %d: expected NS Red / EW Yellow, got NS %s / EW %s", cfg.GreenTicks+cfg.YellowTicks+cfg.RedOverlap+cfg.GreenTicks+i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// Step 6: NS Red / EW Red (overlap) (tick 15)
+	for i := 0; i < cfg.RedOverlap; i++ {
+		state := c.State()
+		if state.NS != Red || state.EW != Red {
+			t.Fatalf("Tick %d: expected NS Red / EW Red, got NS %s / EW %s", cfg.GreenTicks+cfg.YellowTicks+cfg.RedOverlap+cfg.GreenTicks+cfg.YellowTicks+i, state.NS, state.EW)
+		}
+		c.Tick()
+	}
+
+	// Step 7: Back to NS Green / EW Red (tick 16)
+	state := c.State()
+	if state.NS != Green || state.EW != Red {
+		t.Fatalf("expected cycle to restart with NS Green / EW Red, got NS %s / EW %s", state.NS, state.EW)
+	}
+}
+
+
 
 
