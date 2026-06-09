@@ -17,6 +17,7 @@ const (
 	ewGreen
 	ewYellow
 	ewAllRed
+	phaseCount
 )
 
 type IntersectionState struct {
@@ -59,7 +60,7 @@ func (c *Controller) Tick() {
 
 	if c.ticksInCurrentPhase >= limit {
 		c.ticksInCurrentPhase = 0
-		c.currentPhase = (c.currentPhase + 1) % 6
+		c.currentPhase = (c.currentPhase + 1) % phaseCount
 	}
 }
 
